@@ -1,16 +1,22 @@
 version: '3.8'
 
 services:
-  frontend:
-    build: ./ResumeBuilderAngular
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-
+  
   backend:
-    build: ./ResumeBuilderBackend
+    build:
+      context: ./ResumeBuilderBackend
     ports:
       - "4292:4292"
-    volumes:
-      - ./ResumeBuilderBackend/.env:/app/.env
+    environment:
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - MONGO_URL=${MONGO_URL}
+      - FRONT_END=${FRONT_END}
+      - OPENAI_KEY=${OPENAI_KEY}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_PASS=${GMAIL_PASS}
+  
+  frontend:
+    build:
+      context: ./ResumeBuilderAngular
+    ports:
+      - "80:80"
