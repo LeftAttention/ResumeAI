@@ -1,31 +1,17 @@
 # Build stage
-FROM node:18-slim as build-stage
-
+FROM node:18 AS builder
 WORKDIR /app
-
-# Copy package.json and package-lock.json
 COPY package*.json ./
-
-# Install all dependencies
-RUN npm install
-RUN npm install -g typescript
-
-# Copy the rest of the backend application
+RUN npm install --force
 COPY . .
+RUN npm install typescript -g
+RUN tsc --build
 
-RUN tsc
-
-# Final stage
-FROM node:18-slim
-
+# Deployment stage
+FROM node:18
 WORKDIR /app
-
-# Copy built assets from the build stage
-COPY --from=build-stage /app/dist ./dist
-COPY --from=build-stage /app/node_modules ./node_modules
-COPY --from=build-stage /app/package.json ./package.json
-
-# Expose the port the app runs on
+COPY --from=builder /app ./
 EXPOSE 4292
 
+RUN echo "JWT_SECRET_KEY=${JWT_SECRET_KEY}\nMONGO_URL=${MONGO_URL}\nFRONT_END=${FRONT_END}\nOPENAI_KEY=${OPENAI_KEY}\nGMAIL_USER=${GMAIL_USER}\nGMAIL_PASS=${GMAIL_PASS}" > .env
 CMD ["npm", "run", "start"]
